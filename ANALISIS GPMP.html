@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Performance Analysis Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8; /* Soft blue-gray background */
+        }
+        .container {
+            max-width: 900px;
+        }
+        .card {
+            background-color: #ffffff;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2.5rem;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 2rem;
+        }
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 0.75rem;
+            text-align: center;
+        }
+        th {
+            background-color: #475569; /* Darker header */
+            color: #ffffff;
+        }
+        tr:nth-child(even) {
+            background-color: #f8fafc; /* Lighter row color */
+        }
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #3b82f6;
+            color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5), 0 2px 4px -1px rgba(59, 130, 246, 0.25);
+        }
+        .btn-primary:hover {
+            background-color: #2563eb;
+        }
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: #475569;
+        }
+        .btn-secondary:hover {
+            background-color: #cbd5e1;
+        }
+        .chart-container {
+            position: relative;
+            height: 400px;
+        }
+    </style>
+</head>
+<body class="p-6">
+    <div class="container mx-auto card">
+        <h1 class="text-4xl font-bold text-center text-gray-800 mb-2">ANALISIS GPMP SUMATIF 1 DAN SUMATIF 2</h1>
+        <p class="text-center text-gray-500 mb-8">Interactive Dashboard for Data Visualization</p>
+
+        <!-- Interactive Controls -->
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-8">
+            <div class="flex items-center gap-2">
+                <label for="subject-select" class="text-gray-700 font-medium">Select Subject:</label>
+                <select id="subject-select" class="rounded-md border border-gray-300 p-2 focus:ring-blue-500 focus:border-blue-500">
+                    <option value="All">All Subjects</option>
+                    <option value="Bahasa Melayu">Bahasa Melayu</option>
+                    <option value="Bahasa Inggeris">Bahasa Inggeris</option>
+                    <option value="Matematik">Matematik</option>
+                    <option value="Sains">Sains</option>
+                    <option value="Sejarah">Sejarah</option>
+                </select>
+            </div>
+            <button id="toggle-table-btn" class="btn btn-secondary">Hide Data Table</button>
+        </div>
+
+        <!-- Chart Container -->
+        <div class="chart-container mb-12 p-4 rounded-lg bg-gray-50 shadow-inner">
+            <canvas id="performanceChart"></canvas>
+        </div>
+
+        <!-- Original Data Table -->
+        <div id="data-table-container" class="overflow-x-auto rounded-xl shadow-md transition-opacity duration-300">
+            <h2 class="text-2xl font-semibold text-gray-800 mb-4 text-center">Raw Data Table</h2>
+            <table class="w-full text-sm text-left text-gray-500 rounded-lg overflow-hidden">
+                <thead class="text-xs text-gray-700 uppercase bg-gray-200">
+                    <tr>
+                        <th scope="col" class="p-4 rounded-tl-lg" rowspan="2">Sumatif / Subjek</th>
+                        <th scope="col" class="p-4" rowspan="2">Tahun</th>
+                        <th scope="col" class="p-4">Bahasa Melayu</th>
+                        <th scope="col" class="p-4">Bahasa Inggeris</th>
+                        <th scope="col" class="p-4">Matematik</th>
+                        <th scope="col" class="p-4">Sains</th>
+                        <th scope="col" class="p-4">Sejarah</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th scope="row" class="p-4 font-medium text-gray-900 whitespace-nowrap" rowspan="6">Sumatif 1</th>
+                        <td class="p-4">1</td>
+                        <td class="p-4">2.33</td>
+                        <td class="p-4">2.00</td>
+                        <td class="p-4">2.07</td>
+                        <td class="p-4">3.07</td>
+                        <td class="p-4">-</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4">2</td>
+                        <td class="p-4">3.53</td>
+                        <td class="p-4">4.12</td>
+                        <td class="p-4">2.47</td>
+                        <td class="p-4">2.82</td>
+                        <td class="p-4">-</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4">3</td>
+                        <td class="p-4">2.38</td>
+                        <td class="p-4">2.75</td>
+                        <td class="p-4">4.13</td>
+                        <td class="p-4">2.83</td>
+                        <td class="p-4">-</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4">4</td>
+                        <td class="p-4">2.84</td>
+                        <td class="p-4">4.07</td>
+                        <td class="p-4">3.71</td>
+                        <td class="p-4">2.50</td>
+                        <td class="p-4">3.29</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4">5</td>
+                        <td class="p-4">2.92</td>
+                        <td class="p-4">4.00</td>
+                        <td class="p-4">3.33</td>
+                        <td class="p-4">2.58</td>
+                        <td class="p-4">2.92</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4">6</td>
+                        <td class="p-4">2.79</td>
+                        <td class="p-4">4.32</td>
+                        <td class="p-4">3.79</td>
+                        <td class="p-4">2.95</td>
+                        <td class="p-4">2.74</td>
+                    </tr>
+                    <tr>
+                        <th scope="row" class="p-4 font-medium text-gray-900 whitespace-nowrap" rowspan="6">Sumatif 2</th>
+                        <td class="p-4">1</td>
+                        <td class="p-4">2.38</td>
+                        <td class="p-4">2.31</td>
+                        <td class="p-4">2.69</td>
+                        <td class="p-4">3.25</td>
+                        <td class="p-4">-</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4">2</td>
+                        <td class="p-4">3.22</td>
+                        <td class="p-4">3.06</td>
+                        <td class="p-4">3.33</td>
+                        <td class="p-4">2.22</td>
+                        <td class="p-4">-</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4">3</td>
+                        <td class="p-4">2.75</td>
+                        <td class="p-4">2.13</td>
+                        <td class="p-4">3.50</td>
+                        <td class="p-4">3.38</td>
+                        <td class="p-4">-</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4">4</td>
+                        <td class="p-4">3.67</td>
+                        <td class="p-4">3.73</td>
+                        <td class="p-4">3.27</td>
+                        <td class="p-4">3.53</td>
+                        <td class="p-4">3.00</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4">5</td>
+                        <td class="p-4">3.00</td>
+                        <td class="p-4">3.31</td>
+                        <td class="p-4">3.38</td>
+                        <td class="p-4">2.69</td>
+                        <td class="p-4">3.46</td>
+                    </tr>
+                    <tr>
+                        <td class="p-4">6</td>
+                        <td class="p-4">2.67</td>
+                        <td class="p-4">3.78</td>
+                        <td class="p-4">4.22</td>
+                        <td class="p-4">4.06</td>
+                        <td class="p-4">3.17</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Register the datalabels plugin with Chart.js
+        Chart.register(ChartDataLabels);
+
+        const data = {
+            'Bahasa Melayu': {
+                'Summative 1': [2.33, 3.53, 2.38, 2.84, 2.92, 2.79],
+                'Summative 2': [2.38, 3.22, 2.75, 3.67, 3.00, 2.67]
+            },
+            'Bahasa Inggeris': {
+                'Summative 1': [2.00, 4.12, 2.75, 4.07, 4.00, 4.32],
+                'Summative 2': [2.31, 3.06, 2.13, 3.73, 3.31, 3.78]
+            },
+            'Matematik': {
+                'Summative 1': [2.07, 2.47, 4.13, 3.71, 3.33, 3.79],
+                'Summative 2': [2.69, 3.33, 3.50, 3.27, 3.38, 4.22]
+            },
+            'Sains': {
+                'Summative 1': [3.07, 2.82, 2.83, 2.50, 2.58, 2.95],
+                'Summative 2': [3.25, 2.22, 3.38, 3.53, 2.69, 4.06]
+            },
+            'Sejarah': {
+                'Summative 1': [null, null, null, 3.29, 2.92, 2.74],
+                'Summative 2': [null, null, null, 3.00, 3.46, 3.17]
+            }
+        };
+
+        const years = [1, 2, 3, 4, 5, 6];
+        let myChart = null;
+
+        const ctx = document.getElementById('performanceChart').getContext('2d');
+        const subjectSelect = document.getElementById('subject-select');
+        const toggleTableBtn = document.getElementById('toggle-table-btn');
+        const dataTableContainer = document.getElementById('data-table-container');
+
+        const subjectColors = {
+            'Bahasa Melayu': '#4c51bf', // Indigo
+            'Bahasa Inggeris': '#e53e3e', // Red
+            'Matematik': '#38a169', // Green
+            'Sains': '#dd6b20', // Orange
+            'Sejarah': '#805ad5' // Purple
+        };
+
+        function updateChart() {
+            const selectedSubject = subjectSelect.value;
+            const datasets = [];
+            const labels = years;
+
+            if (selectedSubject === 'All') {
+                for (const subject in data) {
+                    datasets.push({
+                        label: `${subject} (Sumatif 1)`,
+                        data: data[subject]['Summative 1'],
+                        backgroundColor: subjectColors[subject],
+                        borderColor: subjectColors[subject],
+                        borderWidth: 1,
+                    });
+                    datasets.push({
+                        label: `${subject} (Sumatif 2)`,
+                        data: data[subject]['Summative 2'],
+                        backgroundColor: subjectColors[subject] + '80', // Slightly transparent version
+                        borderColor: subjectColors[subject],
+                        borderWidth: 1,
+                    });
+                }
+            } else {
+                datasets.push({
+                    label: `${selectedSubject} (Sumatif 1)`,
+                    data: data[selectedSubject]['Summative 1'],
+                    backgroundColor: subjectColors[selectedSubject],
+                    borderColor: subjectColors[selectedSubject],
+                    borderWidth: 1,
+                });
+                datasets.push({
+                    label: `${selectedSubject} (Sumatif 2)`,
+                    data: data[selectedSubject]['Summative 2'],
+                    backgroundColor: subjectColors[selectedSubject] + '80',
+                    borderColor: subjectColors[selectedSubject],
+                    borderWidth: 1,
+                });
+            }
+
+            if (myChart) {
+                myChart.destroy();
+            }
+
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: datasets.filter(d => d.data.some(val => val !== null))
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Tahun (Year)',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Score',
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                usePointStyle: true,
+                                font: {
+                                    weight: 'bold'
+                                }
+                            }
+                        },
+                        datalabels: {
+                            anchor: 'end',
+                            align: 'top',
+                            color: '#000',
+                            font: {
+                                weight: 'bold'
+                            },
+                            formatter: function(value) {
+                                return value !== null ? value.toFixed(2) : '';
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(2);
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        subjectSelect.addEventListener('change', updateChart);
+        
+        toggleTableBtn.addEventListener('click', () => {
+            const isHidden = dataTableContainer.classList.contains('hidden');
+            if (isHidden) {
+                dataTableContainer.classList.remove('hidden');
+                dataTableContainer.classList.add('opacity-100');
+                toggleTableBtn.textContent = 'Hide Data Table';
+            } else {
+                dataTableContainer.classList.remove('opacity-100');
+                dataTableContainer.classList.add('hidden');
+                toggleTableBtn.textContent = 'Show Data Table';
+            }
+        });
+
+        window.onload = updateChart;
+    </script>
+</body>
+</html>
